@@ -215,7 +215,47 @@
             <p class="detail-meta" id="detail-timestamp"></p>
             <p class="detail-description" id="detail-description"></p>
           </div>
-          <button class="ghost detail-back" type="button" data-action="back-expenses">חזרה לרשימה</button>
+          <form class="expense-form detail-form" id="detail-form">
+            <label class="field">
+              <span>סכום</span>
+              <div class="input-with-prefix">
+                <span>₪</span>
+                <input
+                  id="detail-amount-input"
+                  type="number"
+                  inputmode="decimal"
+                  min="0"
+                  step="0.01"
+                  placeholder="0"
+                  required
+                />
+              </div>
+            </label>
+            <label class="field">
+              <span>קטגוריה</span>
+              <select id="detail-category"></select>
+            </label>
+            <label class="field">
+              <span>כותרת</span>
+              <input type="text" id="detail-title-input" placeholder="לדוגמה: קפה, שכירות..." />
+            </label>
+            <label class="field">
+              <span>תיאור</span>
+              <textarea id="detail-description-input" placeholder="הוסיפו הערה או פרטים נוספים."></textarea>
+            </label>
+            <label class="field">
+              <span>תאריך ושעה</span>
+              <input id="detail-timestamp-input" type="datetime-local" />
+            </label>
+            <p class="field-error" id="detail-error" role="alert"></p>
+            <div class="footer-actions">
+              <button class="ghost detail-back" type="button" data-action="back-expenses">חזרה לרשימה</button>
+              <div class="detail-actions">
+                <button class="ghost danger" type="button" data-action="delete-expense">מחק הוצאה</button>
+                <button class="primary" type="submit">✓ שמירת שינויים</button>
+              </div>
+            </div>
+          </form>
         </section>
       </section>
     </main>
