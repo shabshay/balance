@@ -54,6 +54,25 @@
       </section>
 
       <section class="view" data-view="home" hidden>
+        <section class="summary-card">
+          <div class="summary-header">
+            <div>
+              <p class="summary-label">יתרה נוכחית</p>
+              <p class="summary-value">₪<span id="current-balance">0</span></p>
+            </div>
+            <div class="summary-meta">
+              <p>תקציב: ₪<span id="budget-total">0</span></p>
+              <p>נוצל: ₪<span id="budget-spent">0</span></p>
+            </div>
+          </div>
+          <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100">
+            <div class="progress-fill" id="budget-progress"></div>
+          </div>
+          <div class="progress-labels">
+            <span id="progress-label">0% used</span>
+            <span id="progress-remaining">0 left</span>
+          </div>
+        </section>
         <div class="balance-ring" id="balance-ring">
           <div>
             <p class="balance-amount">₪<span id="balance-left">0</span></p>
@@ -61,7 +80,7 @@
           </div>
         </div>
         <p class="reset-label" id="reset-label">Resets in 0h 00m</p>
-        <button class="primary" data-action="add-expense">＋ Add expense</button>
+        <button class="primary cta" data-action="add-expense">＋ Add Expense</button>
         <div class="split-actions">
           <button class="ghost">All Expenses</button>
           <button class="ghost">Reports</button>
