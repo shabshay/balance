@@ -83,7 +83,7 @@
         <button class="primary cta" data-action="add-expense">＋ Add Expense</button>
         <div class="split-actions">
           <button class="ghost" data-action="view-expenses">All Expenses</button>
-          <button class="ghost">Reports</button>
+          <button class="ghost" data-action="view-reports">Reports</button>
         </div>
         <section>
           <h3>Recent expenses</h3>
@@ -92,6 +92,43 @@
             <span>Tap "Add expense" to get started</span>
           </div>
         </section>
+      </section>
+
+      <section class="view" data-view="reports" hidden>
+        <header class="subheader">
+          <button class="icon-button" data-action="back-home">←</button>
+          <div>
+            <h2 class="view-title">דוחות</h2>
+            <p class="subtitle">תמונת מצב לפי התקופה הנוכחית.</p>
+          </div>
+        </header>
+        <section class="summary-card report-kpis">
+          <div class="kpi-grid">
+            <div class="kpi-card">
+              <p class="summary-label">הוצאה ממוצעת ליום</p>
+              <p class="summary-value">₪<span id="report-daily-average">0</span></p>
+            </div>
+            <div class="kpi-card">
+              <p class="summary-label">סה״כ תקופה</p>
+              <p class="summary-value">₪<span id="report-period-total">0</span></p>
+            </div>
+            <div class="kpi-card">
+              <p class="summary-label">קטגוריה מובילה</p>
+              <p class="summary-value" id="report-top-category">—</p>
+              <p class="summary-meta">חלק יחסי: <span id="report-top-share">0%</span></p>
+            </div>
+          </div>
+        </section>
+        <section class="summary-card">
+          <div class="summary-row">
+            <div>
+              <p class="summary-label">פיזור הוצאות לפי קטגוריה</p>
+              <p class="subtitle">הצגת קטגוריות מובילות בתקופה.</p>
+            </div>
+          </div>
+          <div id="report-chart" class="report-chart"></div>
+        </section>
+        <p class="report-note" id="report-note"></p>
       </section>
 
       <section class="view" data-view="expense" hidden>

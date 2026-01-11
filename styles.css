@@ -316,6 +316,72 @@ body {
   align-items: center;
 }
 
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+
+.kpi-card {
+  background: #f7f9fb;
+  border-radius: 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+}
+
+.kpi-card .summary-value {
+  font-size: 24px;
+}
+
+.kpi-card .summary-meta {
+  text-align: left;
+  margin-top: 6px;
+}
+
+.report-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.chart-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.chart-label {
+  min-width: 96px;
+  font-weight: 600;
+}
+
+.chart-bar {
+  flex: 1;
+  height: 10px;
+  background: #edf1f7;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.chart-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: inherit;
+}
+
+.chart-value {
+  min-width: 54px;
+  text-align: right;
+  font-weight: 600;
+}
+
+.report-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  text-align: center;
+}
+
 .progress {
   width: 100%;
   background: #e9eef5;
