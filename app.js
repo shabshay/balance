@@ -1,8 +1,14 @@
+import { calculateBalance, createMockApi, createStorage } from "./storage.js";
+
 const views = Array.from(document.querySelectorAll(".view"));
+const storage = createStorage();
+const api = createMockApi(storage);
 const state = {
   period: "daily",
   budget: 0,
   expenses: [],
+  categories: [],
+  settings: {},
   expenseDraft: {
     amount: "",
     title: "",
@@ -10,16 +16,6 @@ const state = {
     categoryId: "food",
   },
 };
-
-const categories = [
-  { id: "food", name: "Food", icon: "🍴" },
-  { id: "transport", name: "Transport", icon: "🚗" },
-  { id: "shopping", name: "Shopping", icon: "🛍️" },
-  { id: "fun", name: "Fun", icon: "✨" },
-  { id: "other", name: "Other", icon: "…" },
-];
-
-const storageKey = "balance-state";
 
 const budgetAmount = document.getElementById("budget-amount");
 const balanceLeft = document.getElementById("balance-left");
@@ -35,28 +31,7 @@ const categoryChips = document.getElementById("category-chips");
 
 const formatMoney = (value) => Number(value || 0).toLocaleString("he-IL", { minimumFractionDigits: 0 });
 
-const saveState = () => {
-  localStorage.setItem(storageKey, JSON.stringify({
-    period: state.period,
-    budget: state.budget,
-    expenses: state.expenses,
-  }));
-};
-
-const loadState = () => {
-  const stored = localStorage.getItem(storageKey);
-  if (!stored) {
-    return;
-  }
-  try {
-    const parsed = JSON.parse(stored);
-    state.period = parsed.period || state.period;
-    state.budget = parsed.budget || state.budget;
-    state.expenses = parsed.expenses || state.expenses;
-  } catch (error) {
-    console.warn("Failed to load state", error);
-  }
-};
+const getDefaultCategoryId = () => state.categories[0]?.id || "food";
 
 const showView = (name) => {
   views.forEach((view) => {
@@ -65,7 +40,6 @@ const showView = (name) => {
 };
 
 const updatePeriodSelection = (period) => {
-  state.period = period;
   document.querySelectorAll("[data-period]").forEach((button) => {
     const selected = button.dataset.period === period;
     button.setAttribute("aria-checked", selected ? "true" : "false");
@@ -77,10 +51,11 @@ const updateBudgetDisplay = () => {
 };
 
 const updateBalance = () => {
-  const spent = state.expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const left = Math.max(state.budget - spent, 0);
+  const { left, percent } = calculateBalance(
+    { period: state.period, budget: state.budget },
+    state.expenses,
+  );
   balanceLeft.textContent = formatMoney(left);
-  const percent = state.budget > 0 ? Math.min(spent / state.budget, 1) : 0;
   const degrees = Math.round(percent * 360);
   balanceRing.style.background = `conic-gradient(var(--accent) ${degrees}deg, #e9eef5 ${degrees}deg)`;
   resetLabel.textContent = state.period === "weekly" ? "Resets in 3d 4h" : state.period === "monthly" ? "Resets in 12d 2h" : "Resets in 8h 46m";
@@ -96,7 +71,7 @@ const renderExpenses = () => {
   recentExpenses.classList.remove("empty");
   recentExpenses.innerHTML = "";
   state.expenses.slice(-3).reverse().forEach((expense) => {
-    const category = categories.find((item) => item.id === expense.categoryId);
+    const category = state.categories.find((item) => item.id === expense.categoryId);
     const item = document.createElement("div");
     item.className = "expense-item";
     item.innerHTML = `
@@ -125,7 +100,7 @@ const resetDraft = () => {
     amount: "",
     title: "",
     description: "",
-    categoryId: "food",
+    categoryId: getDefaultCategoryId(),
   };
   expenseTitle.value = "";
   expenseDescription.value = "";
@@ -135,7 +110,7 @@ const resetDraft = () => {
 
 const renderCategoryChips = () => {
   categoryChips.innerHTML = "";
-  categories.forEach((category) => {
+  state.categories.forEach((category) => {
     const button = document.createElement("button");
     button.className = "category-chip";
     if (category.id === state.expenseDraft.categoryId) {
@@ -150,12 +125,12 @@ const renderCategoryChips = () => {
   });
 };
 
-const addExpense = () => {
+const addExpense = async () => {
   const amountNumber = Number(state.expenseDraft.amount || 0);
   if (!amountNumber) {
     return;
   }
-  state.expenses.push({
+  const expense = {
     id: crypto.randomUUID(),
     amount: amountNumber,
     categoryId: state.expenseDraft.categoryId,
@@ -163,15 +138,21 @@ const addExpense = () => {
     description: state.expenseDraft.description,
     timestamp: Date.now(),
     time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
-  });
-  saveState();
+  };
+  state.expenses = await api.addExpense(expense);
   resetDraft();
   updateBalance();
   renderExpenses();
 };
 
-const updateFromStorage = () => {
-  loadState();
+const updateFromStorage = async () => {
+  const stored = await api.load();
+  state.settings = stored.settings;
+  state.period = stored.settings.period;
+  state.budget = stored.settings.budget;
+  state.expenses = stored.expenses;
+  state.categories = stored.categories;
+  state.expenseDraft.categoryId = getDefaultCategoryId();
   updatePeriodSelection(state.period);
   updateBudgetDisplay();
   updateBalance();
@@ -197,9 +178,25 @@ const handleKeypad = (key) => {
 
 const isExpenseAmountValid = () => Number(state.expenseDraft.amount) > 0;
 
+const setPeriod = async (period) => {
+  state.period = period;
+  updatePeriodSelection(period);
+  state.settings = await api.updateSettings({ period });
+  updateBalance();
+};
+
+const setBudget = async (budget) => {
+  state.budget = budget;
+  updateBudgetDisplay();
+  state.settings = await api.updateSettings({ budget });
+  updateBalance();
+};
+
 const registerEvents = () => {
   document.querySelectorAll("[data-period]").forEach((button) => {
-    button.addEventListener("click", () => updatePeriodSelection(button.dataset.period));
+    button.addEventListener("click", () => {
+      void setPeriod(button.dataset.period);
+    });
   });
 
   document.querySelector("[data-action='to-budget']").addEventListener("click", () => {
@@ -212,8 +209,7 @@ const registerEvents = () => {
 
   document.querySelectorAll("[data-budget]").forEach((button) => {
     button.addEventListener("click", () => {
-      state.budget = Number(button.dataset.budget);
-      updateBudgetDisplay();
+      void setBudget(Number(button.dataset.budget));
     });
   });
 
@@ -221,7 +217,6 @@ const registerEvents = () => {
     if (!state.budget) {
       return;
     }
-    saveState();
     updateBalance();
     showView("home");
   });
@@ -259,7 +254,7 @@ const registerEvents = () => {
   });
 
   document.querySelector("[data-action='save-expense']").addEventListener("click", () => {
-    addExpense();
+    void addExpense();
     showView("home");
   });
 
@@ -268,6 +263,10 @@ const registerEvents = () => {
   });
 };
 
-updateFromStorage();
-registerEvents();
-updateExpenseAmounts();
+const init = async () => {
+  await updateFromStorage();
+  registerEvents();
+  updateExpenseAmounts();
+};
+
+void init();
