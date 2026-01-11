@@ -1,4 +1,4 @@
-import { calculateBalance, createMockApi, createStorage } from "./storage.js";
+import { calculateBalance, createMockApi, createStorage, filterExpensesByPeriod } from "./storage.js";
 
 const views = Array.from(document.querySelectorAll(".view"));
 const storage = createStorage();
@@ -12,9 +12,16 @@ const state = {
   expenseDraft: {
     amount: "",
     title: "",
+    description: "",
     categoryId: "food",
     timestamp: "",
   },
+  expenseFilters: {
+    search: "",
+    categoryId: "all",
+    period: "all",
+  },
+  selectedExpenseId: null,
 };
 
 const onboardingBudget = document.getElementById("onboarding-budget");
@@ -33,10 +40,29 @@ const expenseAmountInput = document.getElementById("expense-amount-input");
 const expenseCategorySelect = document.getElementById("expense-category");
 const expenseTimestampInput = document.getElementById("expense-timestamp");
 const expenseTitle = document.getElementById("expense-title");
+const expenseDescription = document.getElementById("expense-description");
 const expenseError = document.getElementById("expense-error");
 const categoryShortcuts = document.getElementById("category-shortcuts");
+const expenseSearchInput = document.getElementById("expense-search");
+const expenseFilterCategory = document.getElementById("expense-filter-category");
+const expenseFilterPeriod = document.getElementById("expense-filter-period");
+const expensesList = document.getElementById("expenses-list");
+const periodTotal = document.getElementById("period-total");
+const periodCount = document.getElementById("period-count");
+const periodAverage = document.getElementById("period-average");
+const categorySummary = document.getElementById("category-summary");
+const detailCategoryIcon = document.getElementById("detail-category-icon");
+const detailCategoryName = document.getElementById("detail-category-name");
+const detailTitle = document.getElementById("detail-title");
+const detailAmount = document.getElementById("detail-amount");
+const detailTimestamp = document.getElementById("detail-timestamp");
+const detailDescription = document.getElementById("detail-description");
 
 const formatMoney = (value) => Number(value || 0).toLocaleString("he-IL", { minimumFractionDigits: 0 });
+const formatDateTime = (timestamp) =>
+  new Date(timestamp).toLocaleString("he-IL", { dateStyle: "medium", timeStyle: "short" });
+
+const normalizeText = (value) => (value || "").toString().toLowerCase().trim();
 
 const getDefaultCategoryId = () => state.categories[0]?.id || "food";
 
@@ -125,11 +151,13 @@ const resetDraft = () => {
   state.expenseDraft = {
     amount: "",
     title: "",
+    description: "",
     categoryId: getDefaultCategoryId(),
     timestamp: "",
   };
   expenseAmountInput.value = "";
   expenseTitle.value = "";
+  expenseDescription.value = "";
   expenseCategorySelect.value = state.expenseDraft.categoryId;
   expenseTimestampInput.value = formatDateTimeLocalValue(new Date());
   expenseError.textContent = "";
@@ -176,6 +204,7 @@ const addExpense = async () => {
     amount: amountNumber,
     categoryId: state.expenseDraft.categoryId,
     title: state.expenseDraft.title,
+    description: state.expenseDraft.description,
     timestamp: state.expenseDraft.timestamp || Date.now(),
     time: new Date(state.expenseDraft.timestamp || Date.now()).toLocaleTimeString("en-US", {
       hour: "numeric",
@@ -186,6 +215,143 @@ const addExpense = async () => {
   resetDraft();
   updateBalance();
   renderExpenses();
+  renderExpenseList();
+};
+
+const getFilteredExpenses = () => {
+  const periodScoped =
+    state.expenseFilters.period === "all"
+      ? state.expenses
+      : filterExpensesByPeriod(state.expenses, state.expenseFilters.period);
+  const query = normalizeText(state.expenseFilters.search);
+  const searchScoped = query
+    ? periodScoped.filter((expense) => {
+      const category = state.categories.find((item) => item.id === expense.categoryId);
+      const fields = [
+        expense.title,
+        expense.description,
+        category?.name,
+      ]
+        .map(normalizeText)
+        .join(" ");
+      return fields.includes(query);
+    })
+    : periodScoped;
+  const categoryScoped =
+    state.expenseFilters.categoryId === "all"
+      ? searchScoped
+      : searchScoped.filter((expense) => expense.categoryId === state.expenseFilters.categoryId);
+  return {
+    periodScoped,
+    searchScoped,
+    categoryScoped,
+  };
+};
+
+const renderExpenseSummaries = () => {
+  const { searchScoped } = getFilteredExpenses();
+  const total = searchScoped.reduce((sum, expense) => sum + expense.amount, 0);
+  const count = searchScoped.length;
+  periodTotal.textContent = formatMoney(total);
+  periodCount.textContent = formatMoney(count);
+  periodAverage.textContent = formatMoney(count ? total / count : 0);
+
+  const totalsByCategory = searchScoped.reduce((acc, expense) => {
+    acc[expense.categoryId] = (acc[expense.categoryId] || 0) + expense.amount;
+    return acc;
+  }, {});
+
+  categorySummary.innerHTML = "";
+  if (searchScoped.length === 0) {
+    categorySummary.innerHTML = "<p class=\"empty-summary\">אין נתונים להצגה</p>";
+    return;
+  }
+
+  state.categories.forEach((category) => {
+    const totalForCategory = totalsByCategory[category.id];
+    if (!totalForCategory) {
+      return;
+    }
+    const row = document.createElement("div");
+    row.className = "category-summary-row";
+    row.innerHTML = `
+      <span>${category.icon} ${category.name}</span>
+      <strong>₪${formatMoney(totalForCategory)}</strong>
+    `;
+    categorySummary.appendChild(row);
+  });
+};
+
+const renderExpenseList = () => {
+  if (!expensesList) {
+    return;
+  }
+  const { categoryScoped } = getFilteredExpenses();
+  if (categoryScoped.length === 0) {
+    expensesList.classList.add("empty");
+    expensesList.innerHTML = "<p>לא נמצאו הוצאות</p><span>נסו לשנות את הסינון או החיפוש</span>";
+    renderExpenseSummaries();
+    return;
+  }
+  expensesList.classList.remove("empty");
+  expensesList.innerHTML = "";
+  categoryScoped
+    .slice()
+    .sort((a, b) => b.timestamp - a.timestamp)
+    .forEach((expense) => {
+      const category = state.categories.find((item) => item.id === expense.categoryId);
+      const item = document.createElement("div");
+      item.className = "expense-item detailed";
+      item.innerHTML = `
+        <div class="expense-meta">
+          <div class="category-icon">${category?.icon || "💸"}</div>
+          <div>
+            <strong>${expense.title || category?.name || "Expense"}</strong>
+            <div class="subtitle">${category?.name || ""} · ${formatDateTime(expense.timestamp)}</div>
+            ${expense.description ? `<div class="expense-description">${expense.description}</div>` : ""}
+          </div>
+        </div>
+        <div class="expense-actions">
+          <strong>₪${formatMoney(expense.amount)}</strong>
+          <button class="ghost small" data-action="view-expense" data-id="${expense.id}">
+            לפרטים
+          </button>
+        </div>
+      `;
+      expensesList.appendChild(item);
+    });
+  renderExpenseSummaries();
+};
+
+const renderExpenseFilters = () => {
+  expenseFilterCategory.innerHTML = "";
+  const allOption = document.createElement("option");
+  allOption.value = "all";
+  allOption.textContent = "כל הקטגוריות";
+  expenseFilterCategory.appendChild(allOption);
+  state.categories.forEach((category) => {
+    const option = document.createElement("option");
+    option.value = category.id;
+    option.textContent = `${category.icon} ${category.name}`;
+    expenseFilterCategory.appendChild(option);
+  });
+  expenseFilterCategory.value = state.expenseFilters.categoryId;
+  expenseFilterPeriod.value = state.expenseFilters.period;
+  expenseSearchInput.value = state.expenseFilters.search;
+};
+
+const renderExpenseDetail = () => {
+  const expense = state.expenses.find((item) => item.id === state.selectedExpenseId);
+  if (!expense) {
+    return;
+  }
+  const category = state.categories.find((item) => item.id === expense.categoryId);
+  detailCategoryIcon.textContent = category?.icon || "💸";
+  detailCategoryName.textContent = category?.name || "קטגוריה";
+  detailTitle.textContent = expense.title || "הוצאה";
+  detailAmount.textContent = formatMoney(expense.amount);
+  detailTimestamp.textContent = formatDateTime(expense.timestamp);
+  detailDescription.textContent = expense.description || "אין תיאור להוצאה זו.";
 };
 
 const updateFromStorage = async () => {
@@ -202,6 +368,8 @@ const updateFromStorage = async () => {
   renderExpenses();
   renderCategoryOptions();
   renderCategoryShortcuts();
+  renderExpenseFilters();
+  renderExpenseList();
   showView(state.budget > 0 ? "home" : "onboarding");
 };
 
@@ -243,6 +411,7 @@ const handleExpenseSubmit = async (event) => {
   }
   state.expenseDraft.amount = amountValue;
   state.expenseDraft.title = expenseTitle.value.trim();
+  state.expenseDraft.description = expenseDescription.value.trim();
   state.expenseDraft.categoryId = expenseCategorySelect.value;
   state.expenseDraft.timestamp = expenseTimestampInput.value
     ? new Date(expenseTimestampInput.value).getTime()
@@ -267,6 +436,24 @@ const registerEvents = () => {
     showView("expense");
   });
 
+  document.querySelector("[data-action='view-expenses']").addEventListener("click", () => {
+    renderExpenseList();
+    showView("expenses");
+  });
+
+  document.querySelectorAll("[data-action='back-home']").forEach((button) => {
+    button.addEventListener("click", () => {
+      showView("home");
+    });
+  });
+
+  document.querySelectorAll("[data-action='back-expenses']").forEach((button) => {
+    button.addEventListener("click", () => {
+      renderExpenseList();
+      showView("expenses");
+    });
+  });
+
   document.querySelectorAll("[data-action='cancel-expense']").forEach((button) => {
     button.addEventListener("click", () => {
       showView("home");
@@ -282,6 +469,31 @@ const registerEvents = () => {
     if (expenseError.textContent) {
       expenseError.textContent = "";
     }
+  });
+
+  expenseSearchInput.addEventListener("input", () => {
+    state.expenseFilters.search = expenseSearchInput.value;
+    renderExpenseList();
+  });
+
+  expenseFilterCategory.addEventListener("change", () => {
+    state.expenseFilters.categoryId = expenseFilterCategory.value;
+    renderExpenseList();
+  });
+
+  expenseFilterPeriod.addEventListener("change", () => {
+    state.expenseFilters.period = expenseFilterPeriod.value;
+    renderExpenseList();
+  });
+
+  expensesList.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action='view-expense']");
+    if (!button) {
+      return;
+    }
+    state.selectedExpenseId = button.dataset.id;
+    renderExpenseDetail();
+    showView("expense-detail");
   });
 
   expenseForm.addEventListener("submit", (event) => {

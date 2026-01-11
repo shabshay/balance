@@ -82,7 +82,7 @@
         <p class="reset-label" id="reset-label">Resets in 0h 00m</p>
         <button class="primary cta" data-action="add-expense">＋ Add Expense</button>
         <div class="split-actions">
-          <button class="ghost">All Expenses</button>
+          <button class="ghost" data-action="view-expenses">All Expenses</button>
           <button class="ghost">Reports</button>
         </div>
         <section>
@@ -131,6 +131,10 @@
             <input type="text" id="expense-title" placeholder="Coffee, Supermarket, Taxi..." />
           </label>
           <label class="field">
+            <span>Description (optional)</span>
+            <textarea id="expense-description" placeholder="Notes, vendor details, or tags..."></textarea>
+          </label>
+          <label class="field">
             <span>Timestamp</span>
             <input id="expense-timestamp" type="datetime-local" />
           </label>
@@ -140,6 +144,79 @@
             <button class="primary" type="submit">✓ Save expense</button>
           </div>
         </form>
+      </section>
+
+      <section class="view" data-view="expenses" hidden>
+        <header class="subheader">
+          <button class="icon-button" data-action="back-home">←</button>
+          <div>
+            <h2 class="view-title">כל ההוצאות</h2>
+            <p class="subtitle">חפשו וסננו לפי קטגוריה ותקופה.</p>
+          </div>
+        </header>
+        <label class="field">
+          <span>חיפוש לפי כותרת או תיאור</span>
+          <input id="expense-search" type="search" placeholder="לדוגמה: קפה, שכירות..." />
+        </label>
+        <div class="filter-grid">
+          <label class="field">
+            <span>קטגוריה</span>
+            <select id="expense-filter-category"></select>
+          </label>
+          <label class="field">
+            <span>תקופה</span>
+            <select id="expense-filter-period">
+              <option value="all">כל התקופות</option>
+              <option value="weekly">שבוע נוכחי</option>
+              <option value="monthly">חודש נוכחי</option>
+            </select>
+          </label>
+        </div>
+        <section class="summary-card">
+          <div class="summary-row">
+            <div>
+              <p class="summary-label">סה״כ לתקופה</p>
+              <p class="summary-value">₪<span id="period-total">0</span></p>
+            </div>
+            <div class="summary-meta">
+              <p>מספר הוצאות: <span id="period-count">0</span></p>
+              <p>ממוצע להוצאה: ₪<span id="period-average">0</span></p>
+            </div>
+          </div>
+          <div>
+            <p class="summary-label">סה״כ לפי קטגוריה</p>
+            <div id="category-summary" class="category-summary-list"></div>
+          </div>
+        </section>
+        <div id="expenses-list" class="expense-list detailed empty">
+          <p>לא נמצאו הוצאות</p>
+          <span>נסו לשנות את הסינון או החיפוש</span>
+        </div>
+      </section>
+
+      <section class="view" data-view="expense-detail" hidden>
+        <header class="subheader">
+          <button class="icon-button" data-action="back-expenses">←</button>
+          <div>
+            <h2 class="view-title">פרטי הוצאה</h2>
+            <p class="subtitle">סיכום מלא של ההוצאה שבחרתם.</p>
+          </div>
+        </header>
+        <section class="summary-card expense-detail-card">
+          <div class="expense-detail-header">
+            <div class="category-icon" id="detail-category-icon">💸</div>
+            <div>
+              <p class="summary-label" id="detail-category-name">קטגוריה</p>
+              <h3 id="detail-title">הוצאה</h3>
+            </div>
+            <strong class="detail-amount">₪<span id="detail-amount">0</span></strong>
+          </div>
+          <div class="detail-body">
+            <p class="detail-meta" id="detail-timestamp"></p>
+            <p class="detail-description" id="detail-description"></p>
+          </div>
+          <button class="ghost detail-back" type="button" data-action="back-expenses">חזרה לרשימה</button>
+        </section>
       </section>
     </main>
 

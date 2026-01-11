@@ -309,6 +309,13 @@ body {
   margin: 0;
 }
 
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+}
+
 .progress {
   width: 100%;
   background: #e9eef5;
@@ -392,6 +399,11 @@ body {
   text-align: center;
 }
 
+.expense-list.detailed {
+  border-style: solid;
+  text-align: left;
+}
+
 .expense-list.empty span {
   display: block;
   font-size: 14px;
@@ -415,6 +427,25 @@ body {
   display: flex;
   gap: 10px;
   align-items: center;
+}
+
+.expense-description {
+  color: var(--muted);
+  font-size: 13px;
+  margin-top: 4px;
+}
+
+.expense-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.ghost.small {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 12px;
 }
 
 .category-icon {
@@ -507,6 +538,74 @@ body {
   gap: 16px;
 }
 
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.category-summary-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.category-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: #f6f8fb;
+  border-radius: 14px;
+  font-size: 14px;
+}
+
+.empty-summary {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.expense-detail-card {
+  gap: 16px;
+}
+
+.expense-detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.expense-detail-header h3 {
+  margin: 4px 0 0;
+  font-size: 20px;
+}
+
+.detail-amount {
+  font-size: 22px;
+}
+
+.detail-body {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.detail-description {
+  margin: 0;
+  color: var(--text);
+}
+
+.detail-meta {
+  margin: 0;
+  font-size: 14px;
+}
+
+.detail-back {
+  align-self: flex-start;
+}
+
 .category-shortcuts {
   display: flex;
   flex-wrap: wrap;
@@ -551,5 +650,14 @@ body {
 @media (max-width: 400px) {
   .app {
     padding: 20px 16px 32px;
+  }
+
+  .filter-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .expense-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
