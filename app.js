@@ -51,6 +51,12 @@ const periodTotal = document.getElementById("period-total");
 const periodCount = document.getElementById("period-count");
 const periodAverage = document.getElementById("period-average");
 const categorySummary = document.getElementById("category-summary");
+const reportDailyAverage = document.getElementById("report-daily-average");
+const reportPeriodTotal = document.getElementById("report-period-total");
+const reportTopCategory = document.getElementById("report-top-category");
+const reportTopShare = document.getElementById("report-top-share");
+const reportChart = document.getElementById("report-chart");
+const reportNote = document.getElementById("report-note");
 const detailCategoryIcon = document.getElementById("detail-category-icon");
 const detailCategoryName = document.getElementById("detail-category-name");
 const detailTitle = document.getElementById("detail-title");
@@ -77,6 +83,17 @@ const formatDateTimeLocalValue = (date) => {
   const offset = date.getTimezoneOffset() * 60 * 1000;
   const localDate = new Date(date.getTime() - offset);
   return localDate.toISOString().slice(0, 16);
+};
+
+const getDaysInPeriod = (period) => {
+  if (period === "weekly") {
+    return 7;
+  }
+  if (period === "monthly") {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  }
+  return 1;
 };
 
 const showView = (name) => {
@@ -223,6 +240,7 @@ const addExpense = async () => {
   updateBalance();
   renderExpenses();
   renderExpenseList();
+  renderReports();
 };
 
 const getFilteredExpenses = () => {
@@ -287,6 +305,75 @@ const renderExpenseSummaries = () => {
     `;
     categorySummary.appendChild(row);
   });
+};
+
+const getReportTotals = () => {
+  const scopedExpenses = filterExpensesByPeriod(state.expenses, state.period);
+  if (scopedExpenses.length === 0) {
+    const samples = state.categories.slice(0, 4);
+    const mockTotals = samples.map((category, index) => ({
+      category,
+      total: 250 + index * 180,
+    }));
+    return { totals: mockTotals, hasData: false };
+  }
+  const totalsByCategory = scopedExpenses.reduce((acc, expense) => {
+    acc[expense.categoryId] = (acc[expense.categoryId] || 0) + expense.amount;
+    return acc;
+  }, {});
+  const totals = state.categories
+    .map((category) => ({
+      category,
+      total: totalsByCategory[category.id] || 0,
+    }))
+    .filter((item) => item.total > 0);
+  return { totals, hasData: true };
+};
+
+const renderReports = () => {
+  if (!reportDailyAverage) {
+    return;
+  }
+  const { totals, hasData } = getReportTotals();
+  const totalSpent = totals.reduce((sum, item) => sum + item.total, 0);
+  const daysInPeriod = getDaysInPeriod(state.period);
+  const dailyAverage = totalSpent / daysInPeriod;
+  const sortedTotals = totals.slice().sort((a, b) => b.total - a.total);
+  const top = sortedTotals[0];
+  const topShare = totalSpent ? Math.round((top?.total / totalSpent) * 100) : 0;
+
+  reportDailyAverage.textContent = formatMoney(dailyAverage);
+  reportPeriodTotal.textContent = formatMoney(totalSpent);
+  reportTopCategory.textContent = top
+    ? `${top.category.icon} ${top.category.name}`
+    : "—";
+  reportTopShare.textContent = `${topShare}%`;
+
+  reportChart.innerHTML = "";
+  if (totals.length === 0) {
+    reportChart.innerHTML = "<p class=\"empty-summary\">אין נתונים להצגה</p>";
+  } else {
+    totals
+      .slice()
+      .sort((a, b) => b.total - a.total)
+      .forEach((item) => {
+        const share = totalSpent ? Math.round((item.total / totalSpent) * 100) : 0;
+        const row = document.createElement("div");
+        row.className = "chart-row";
+        row.innerHTML = `
+          <span class="chart-label">${item.category.icon} ${item.category.name}</span>
+          <div class="chart-bar">
+            <div class="chart-fill" style="width: ${share}%"></div>
+          </div>
+          <span class="chart-value">${share}%</span>
+        `;
+        reportChart.appendChild(row);
+      });
+  }
+
+  reportNote.textContent = hasData
+    ? "מבוסס על הוצאות בתקופה הנוכחית."
+    : "מציגים נתוני דוגמה עד שתוסיפו הוצאות.";
 };
 
 const renderExpenseList = () => {
@@ -400,6 +487,7 @@ const updateFromStorage = async () => {
   renderCategoryShortcuts();
   renderExpenseFilters();
   renderExpenseList();
+  renderReports();
   showView(state.budget > 0 ? "home" : "onboarding");
 };
 
@@ -410,6 +498,7 @@ const setPeriod = async (period) => {
   updatePeriodSelection(period);
   state.settings = await api.updateSettings({ period });
   updateBalance();
+  renderReports();
 };
 
 const setBudget = async (budget) => {
@@ -480,6 +569,7 @@ const handleDetailSubmit = async (event) => {
   renderExpenses();
   renderExpenseList();
   renderExpenseDetail();
+  renderReports();
   showView("expenses");
 };
 
@@ -499,6 +589,7 @@ const handleDetailDelete = async () => {
   updateBalance();
   renderExpenses();
   renderExpenseList();
+  renderReports();
   showView("expenses");
 };
 
@@ -521,6 +612,11 @@ const registerEvents = () => {
   document.querySelector("[data-action='view-expenses']").addEventListener("click", () => {
     renderExpenseList();
     showView("expenses");
+  });
+
+  document.querySelector("[data-action='view-reports']").addEventListener("click", () => {
+    renderReports();
+    showView("reports");
   });
 
   document.querySelectorAll("[data-action='back-home']").forEach((button) => {
