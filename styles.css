@@ -88,6 +88,11 @@ body {
   margin: 0;
 }
 
+.view-title {
+  margin: 0;
+  font-size: 20px;
+}
+
 .card-list {
   display: flex;
   flex-direction: column;
@@ -459,7 +464,8 @@ body {
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   border: 1px solid var(--border);
   border-radius: 14px;
   padding: 12px;
@@ -470,6 +476,56 @@ body {
 .field textarea {
   min-height: 90px;
   resize: vertical;
+}
+
+.field select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%),
+    linear-gradient(to right, var(--border), var(--border));
+  background-position: calc(100% - 20px) calc(1em + 2px), calc(100% - 15px) calc(1em + 2px),
+    calc(100% - 2.5em) 0.5em;
+  background-size: 5px 5px, 5px 5px, 1px 1.5em;
+  background-repeat: no-repeat;
+}
+
+.field-hint {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.field-error {
+  color: #cc2a2a;
+  font-size: 14px;
+  margin: 0;
+  min-height: 18px;
+}
+
+.expense-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.category-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.shortcut-chip {
+  border: none;
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: #f0f3f7;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.shortcut-chip.active {
+  background: var(--primary);
+  color: #fff;
 }
 
 .category-chips {

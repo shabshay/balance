@@ -12,8 +12,8 @@ const state = {
   expenseDraft: {
     amount: "",
     title: "",
-    description: "",
     categoryId: "food",
+    timestamp: "",
   },
 };
 
@@ -28,16 +28,23 @@ const budgetProgress = document.getElementById("budget-progress");
 const progressLabel = document.getElementById("progress-label");
 const progressRemaining = document.getElementById("progress-remaining");
 const recentExpenses = document.getElementById("recent-expenses");
-const expenseAmount = document.getElementById("expense-amount");
-const expenseAmountReview = document.getElementById("expense-amount-review");
-const expenseAmountFinal = document.getElementById("expense-amount-final");
+const expenseForm = document.getElementById("expense-form");
+const expenseAmountInput = document.getElementById("expense-amount-input");
+const expenseCategorySelect = document.getElementById("expense-category");
+const expenseTimestampInput = document.getElementById("expense-timestamp");
 const expenseTitle = document.getElementById("expense-title");
-const expenseDescription = document.getElementById("expense-description");
-const categoryChips = document.getElementById("category-chips");
+const expenseError = document.getElementById("expense-error");
+const categoryShortcuts = document.getElementById("category-shortcuts");
 
 const formatMoney = (value) => Number(value || 0).toLocaleString("he-IL", { minimumFractionDigits: 0 });
 
 const getDefaultCategoryId = () => state.categories[0]?.id || "food";
+
+const formatDateTimeLocalValue = (date) => {
+  const offset = date.getTimezoneOffset() * 60 * 1000;
+  const localDate = new Date(date.getTime() - offset);
+  return localDate.toISOString().slice(0, 16);
+};
 
 const showView = (name) => {
   views.forEach((view) => {
@@ -114,40 +121,48 @@ const renderExpenses = () => {
   });
 };
 
-const updateExpenseAmounts = () => {
-  const formatted = formatMoney(state.expenseDraft.amount || 0);
-  expenseAmount.textContent = formatted;
-  expenseAmountReview.textContent = formatted;
-  expenseAmountFinal.textContent = formatted;
-};
-
 const resetDraft = () => {
   state.expenseDraft = {
     amount: "",
     title: "",
-    description: "",
     categoryId: getDefaultCategoryId(),
+    timestamp: "",
   };
+  expenseAmountInput.value = "";
   expenseTitle.value = "";
-  expenseDescription.value = "";
-  updateExpenseAmounts();
-  renderCategoryChips();
+  expenseCategorySelect.value = state.expenseDraft.categoryId;
+  expenseTimestampInput.value = formatDateTimeLocalValue(new Date());
+  expenseError.textContent = "";
+  renderCategoryShortcuts();
 };
 
-const renderCategoryChips = () => {
-  categoryChips.innerHTML = "";
+const renderCategoryOptions = () => {
+  expenseCategorySelect.innerHTML = "";
   state.categories.forEach((category) => {
+    const option = document.createElement("option");
+    option.value = category.id;
+    option.textContent = `${category.icon} ${category.name}`;
+    expenseCategorySelect.appendChild(option);
+  });
+  expenseCategorySelect.value = state.expenseDraft.categoryId;
+};
+
+const renderCategoryShortcuts = () => {
+  categoryShortcuts.innerHTML = "";
+  state.categories.slice(0, 4).forEach((category) => {
     const button = document.createElement("button");
-    button.className = "category-chip";
-    if (category.id === state.expenseDraft.categoryId) {
+    button.type = "button";
+    button.className = "shortcut-chip";
+    if (category.id === expenseCategorySelect.value) {
       button.classList.add("active");
     }
     button.textContent = `${category.icon} ${category.name}`;
     button.addEventListener("click", () => {
       state.expenseDraft.categoryId = category.id;
-      renderCategoryChips();
+      expenseCategorySelect.value = category.id;
+      renderCategoryShortcuts();
     });
-    categoryChips.appendChild(button);
+    categoryShortcuts.appendChild(button);
   });
 };
 
@@ -161,9 +176,11 @@ const addExpense = async () => {
     amount: amountNumber,
     categoryId: state.expenseDraft.categoryId,
     title: state.expenseDraft.title,
-    description: state.expenseDraft.description,
-    timestamp: Date.now(),
-    time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }),
+    timestamp: state.expenseDraft.timestamp || Date.now(),
+    time: new Date(state.expenseDraft.timestamp || Date.now()).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    }),
   };
   state.expenses = await api.addExpense(expense);
   resetDraft();
@@ -183,24 +200,12 @@ const updateFromStorage = async () => {
   updateBudgetDisplay();
   updateBalance();
   renderExpenses();
-  renderCategoryChips();
+  renderCategoryOptions();
+  renderCategoryShortcuts();
   showView(state.budget > 0 ? "home" : "onboarding");
 };
 
-const handleKeypad = (key) => {
-  if (key === "back") {
-    state.expenseDraft.amount = state.expenseDraft.amount.slice(0, -1);
-  } else if (key === ".") {
-    if (!state.expenseDraft.amount.includes(".")) {
-      state.expenseDraft.amount += ".";
-    }
-  } else {
-    state.expenseDraft.amount += key;
-  }
-  updateExpenseAmounts();
-};
-
-const isExpenseAmountValid = () => Number(state.expenseDraft.amount) > 0;
+const isExpenseAmountValid = (value) => Number(value) > 0;
 
 const setPeriod = async (period) => {
   state.period = period;
@@ -228,6 +233,24 @@ const saveOnboarding = async () => {
   showView("home");
 };
 
+const handleExpenseSubmit = async (event) => {
+  event.preventDefault();
+  const amountValue = expenseAmountInput.value;
+  if (!isExpenseAmountValid(amountValue)) {
+    expenseError.textContent = "Please enter a positive amount.";
+    expenseAmountInput.focus();
+    return;
+  }
+  state.expenseDraft.amount = amountValue;
+  state.expenseDraft.title = expenseTitle.value.trim();
+  state.expenseDraft.categoryId = expenseCategorySelect.value;
+  state.expenseDraft.timestamp = expenseTimestampInput.value
+    ? new Date(expenseTimestampInput.value).getTime()
+    : Date.now();
+  await addExpense();
+  showView("home");
+};
+
 const registerEvents = () => {
   document.querySelectorAll("[data-period]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -241,50 +264,34 @@ const registerEvents = () => {
 
   document.querySelector("[data-action='add-expense']").addEventListener("click", () => {
     resetDraft();
-    showView("amount");
+    showView("expense");
   });
 
-  document.querySelector("[data-action='cancel-expense']").addEventListener("click", () => {
-    showView("home");
-  });
-
-  document.querySelector("[data-action='to-details']").addEventListener("click", () => {
-    if (!isExpenseAmountValid()) {
-      return;
-    }
-    showView("details");
-  });
-
-  document.querySelector("[data-action='back-to-amount']").addEventListener("click", () => {
-    showView("amount");
-  });
-
-  document.querySelector("[data-action='to-category']").addEventListener("click", () => {
-    state.expenseDraft.title = expenseTitle.value;
-    state.expenseDraft.description = expenseDescription.value;
-    showView("category");
-  });
-
-  document.querySelectorAll("[data-action='back-to-details']").forEach((button) => {
+  document.querySelectorAll("[data-action='cancel-expense']").forEach((button) => {
     button.addEventListener("click", () => {
-      showView("details");
+      showView("home");
     });
   });
 
-  document.querySelector("[data-action='save-expense']").addEventListener("click", () => {
-    void addExpense();
-    showView("home");
+  expenseCategorySelect.addEventListener("change", () => {
+    state.expenseDraft.categoryId = expenseCategorySelect.value;
+    renderCategoryShortcuts();
   });
 
-  document.querySelectorAll("[data-key]").forEach((button) => {
-    button.addEventListener("click", () => handleKeypad(button.dataset.key));
+  expenseAmountInput.addEventListener("input", () => {
+    if (expenseError.textContent) {
+      expenseError.textContent = "";
+    }
+  });
+
+  expenseForm.addEventListener("submit", (event) => {
+    void handleExpenseSubmit(event);
   });
 };
 
 const init = async () => {
   await updateFromStorage();
   registerEvents();
-  updateExpenseAmounts();
 };
 
 void init();
