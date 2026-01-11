@@ -57,6 +57,13 @@ const detailTitle = document.getElementById("detail-title");
 const detailAmount = document.getElementById("detail-amount");
 const detailTimestamp = document.getElementById("detail-timestamp");
 const detailDescription = document.getElementById("detail-description");
+const detailForm = document.getElementById("detail-form");
+const detailAmountInput = document.getElementById("detail-amount-input");
+const detailCategorySelect = document.getElementById("detail-category");
+const detailTitleInput = document.getElementById("detail-title-input");
+const detailDescriptionInput = document.getElementById("detail-description-input");
+const detailTimestampInput = document.getElementById("detail-timestamp-input");
+const detailError = document.getElementById("detail-error");
 
 const formatMoney = (value) => Number(value || 0).toLocaleString("he-IL", { minimumFractionDigits: 0 });
 const formatDateTime = (timestamp) =>
@@ -340,6 +347,28 @@ const renderExpenseFilters = () => {
   expenseSearchInput.value = state.expenseFilters.search;
 };
 
+const renderDetailCategoryOptions = (selectedId) => {
+  detailCategorySelect.innerHTML = "";
+  state.categories.forEach((category) => {
+    const option = document.createElement("option");
+    option.value = category.id;
+    option.textContent = `${category.icon} ${category.name}`;
+    detailCategorySelect.appendChild(option);
+  });
+  detailCategorySelect.value = selectedId || getDefaultCategoryId();
+};
+
+const setDetailFormValues = (expense) => {
+  detailAmountInput.value = expense.amount ? String(expense.amount) : "";
+  detailTitleInput.value = expense.title || "";
+  detailDescriptionInput.value = expense.description || "";
+  detailTimestampInput.value = expense.timestamp
+    ? formatDateTimeLocalValue(new Date(expense.timestamp))
+    : formatDateTimeLocalValue(new Date());
+  renderDetailCategoryOptions(expense.categoryId);
+  detailError.textContent = "";
+};
+
 const renderExpenseDetail = () => {
   const expense = state.expenses.find((item) => item.id === state.selectedExpenseId);
   if (!expense) {
@@ -352,6 +381,7 @@ const renderExpenseDetail = () => {
   detailAmount.textContent = formatMoney(expense.amount);
   detailTimestamp.textContent = formatDateTime(expense.timestamp);
   detailDescription.textContent = expense.description || "אין תיאור להוצאה זו.";
+  setDetailFormValues(expense);
 };
 
 const updateFromStorage = async () => {
@@ -420,6 +450,58 @@ const handleExpenseSubmit = async (event) => {
   showView("home");
 };
 
+const handleDetailSubmit = async (event) => {
+  event.preventDefault();
+  if (!state.selectedExpenseId) {
+    return;
+  }
+  const amountValue = detailAmountInput.value;
+  if (!isExpenseAmountValid(amountValue)) {
+    detailError.textContent = "Please enter a positive amount.";
+    detailAmountInput.focus();
+    return;
+  }
+  const timestamp = detailTimestampInput.value
+    ? new Date(detailTimestampInput.value).getTime()
+    : Date.now();
+  const updates = {
+    amount: Number(amountValue),
+    categoryId: detailCategorySelect.value,
+    title: detailTitleInput.value.trim(),
+    description: detailDescriptionInput.value.trim(),
+    timestamp,
+    time: new Date(timestamp).toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    }),
+  };
+  state.expenses = await api.updateExpense(state.selectedExpenseId, updates);
+  updateBalance();
+  renderExpenses();
+  renderExpenseList();
+  renderExpenseDetail();
+  showView("expenses");
+};
+
+const handleDetailDelete = async () => {
+  if (!state.selectedExpenseId) {
+    return;
+  }
+  const expense = state.expenses.find((item) => item.id === state.selectedExpenseId);
+  if (!expense) {
+    return;
+  }
+  const confirmed = window.confirm("למחוק את ההוצאה הזו? לא ניתן לשחזר אותה.");
+  if (!confirmed) {
+    return;
+  }
+  state.expenses = await api.deleteExpense(expense.id);
+  updateBalance();
+  renderExpenses();
+  renderExpenseList();
+  showView("expenses");
+};
+
 const registerEvents = () => {
   document.querySelectorAll("[data-period]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -471,6 +553,12 @@ const registerEvents = () => {
     }
   });
 
+  detailAmountInput.addEventListener("input", () => {
+    if (detailError.textContent) {
+      detailError.textContent = "";
+    }
+  });
+
   expenseSearchInput.addEventListener("input", () => {
     state.expenseFilters.search = expenseSearchInput.value;
     renderExpenseList();
@@ -498,6 +586,14 @@ const registerEvents = () => {
 
   expenseForm.addEventListener("submit", (event) => {
     void handleExpenseSubmit(event);
+  });
+
+  detailForm.addEventListener("submit", (event) => {
+    void handleDetailSubmit(event);
+  });
+
+  document.querySelector("[data-action='delete-expense']").addEventListener("click", () => {
+    void handleDetailDelete();
   });
 };
 

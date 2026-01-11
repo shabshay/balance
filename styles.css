@@ -570,6 +570,10 @@ body {
   gap: 16px;
 }
 
+.detail-form {
+  margin-top: 4px;
+}
+
 .expense-detail-header {
   display: flex;
   align-items: center;
@@ -604,6 +608,22 @@ body {
 
 .detail-back {
   align-self: flex-start;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.danger {
+  border-color: #e24b4b;
+  color: #e24b4b;
+}
+
+.danger:hover {
+  background: rgba(226, 75, 75, 0.12);
 }
 
 .category-shortcuts {
