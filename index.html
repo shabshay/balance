@@ -94,72 +94,52 @@
         </section>
       </section>
 
-      <section class="view" data-view="amount" hidden>
+      <section class="view" data-view="expense" hidden>
         <header class="subheader">
           <button class="icon-button" data-action="cancel-expense">←</button>
-          <div class="step-indicator small">
-            <span class="dot active"></span>
-            <span class="dot"></span>
-            <span class="dot"></span>
+          <div>
+            <h2 class="view-title">New expense</h2>
+            <p class="subtitle">Fill in the essentials and save.</p>
           </div>
         </header>
-        <p class="subtitle">How much did you spend?</p>
-        <div class="amount-display">₪<span id="expense-amount">0</span></div>
-        <div class="keypad" aria-label="Numeric keypad">
-          <button data-key="1">1</button>
-          <button data-key="2">2</button>
-          <button data-key="3">3</button>
-          <button data-key="4">4</button>
-          <button data-key="5">5</button>
-          <button data-key="6">6</button>
-          <button data-key="7">7</button>
-          <button data-key="8">8</button>
-          <button data-key="9">9</button>
-          <button data-key=".">.</button>
-          <button data-key="0">0</button>
-          <button data-key="back">⌫</button>
-        </div>
-        <button class="primary" data-action="to-details">Continue</button>
-      </section>
-
-      <section class="view" data-view="details" hidden>
-        <header class="subheader">
-          <button class="icon-button" data-action="back-to-amount">←</button>
-          <div class="step-indicator small">
-            <span class="dot active"></span>
-            <span class="dot active"></span>
-            <span class="dot"></span>
+        <form class="expense-form" id="expense-form">
+          <label class="field">
+            <span>Amount</span>
+            <div class="input-with-prefix">
+              <span>₪</span>
+              <input
+                id="expense-amount-input"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                step="0.01"
+                placeholder="0"
+                required
+              />
+            </div>
+          </label>
+          <label class="field">
+            <span>Category</span>
+            <select id="expense-category"></select>
+          </label>
+          <div class="field">
+            <span class="field-hint">Popular categories</span>
+            <div class="category-shortcuts" id="category-shortcuts"></div>
           </div>
-        </header>
-        <p class="subtitle">What did you spend on?</p>
-        <div class="amount-display">₪<span id="expense-amount-review">0</span></div>
-        <label class="field">
-          <span>Title (optional)</span>
-          <input type="text" id="expense-title" placeholder="Coffee, Supermarket, Taxi..." />
-        </label>
-        <label class="field">
-          <span>Description (optional)</span>
-          <textarea id="expense-description" placeholder="Add more details..."></textarea>
-        </label>
-        <button class="primary" data-action="to-category">Continue</button>
-      </section>
-
-      <section class="view" data-view="category" hidden>
-        <header class="subheader">
-          <button class="icon-button" data-action="back-to-details">←</button>
-          <div class="step-indicator small">
-            <span class="dot active"></span>
-            <span class="dot active"></span>
-            <span class="dot active"></span>
+          <label class="field">
+            <span>Title (optional)</span>
+            <input type="text" id="expense-title" placeholder="Coffee, Supermarket, Taxi..." />
+          </label>
+          <label class="field">
+            <span>Timestamp</span>
+            <input id="expense-timestamp" type="datetime-local" />
+          </label>
+          <p class="field-error" id="expense-error" role="alert"></p>
+          <div class="footer-actions">
+            <button class="ghost" type="button" data-action="cancel-expense">Cancel</button>
+            <button class="primary" type="submit">✓ Save expense</button>
           </div>
-        </header>
-        <p class="subtitle">Pick a category</p>
-        <div class="amount-display">₪<span id="expense-amount-final">0</span></div>
-        <div class="category-chips" id="category-chips"></div>
-        <div class="footer-actions">
-          <button class="ghost" data-action="back-to-details">Back</button>
-          <button class="primary" data-action="save-expense">✓ Save expense</button>
-        </div>
+        </form>
       </section>
     </main>
 
