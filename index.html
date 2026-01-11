@@ -18,50 +18,39 @@
         </button>
       </header>
 
-      <section class="view" data-view="period">
-        <div class="step-indicator">
-          <span class="dot active"></span>
-          <span class="dot"></span>
+      <section class="view" data-view="onboarding">
+        <h2>בואו נתחיל</h2>
+        <p class="subtitle">הגדירו תקציב ותקופה כדי לדעת כמה נשאר לכם.</p>
+        <label class="field">
+          <span>סכום תקציב</span>
+          <div class="input-with-prefix">
+            <span>₪</span>
+            <input
+              id="onboarding-budget"
+              type="number"
+              inputmode="decimal"
+              min="0"
+              placeholder="0"
+            />
+          </div>
+        </label>
+        <div class="field">
+          <span>תקופה</span>
+          <div class="pill-group" role="radiogroup">
+            <button class="pill" data-period="weekly" role="radio" aria-checked="true">שבועי</button>
+            <button class="pill" data-period="monthly" role="radio" aria-checked="false">חודשי</button>
+          </div>
         </div>
-        <h2>Choose your period</h2>
-        <p class="subtitle">How often should your budget reset?</p>
-        <div class="card-list" role="radiogroup">
-          <button class="card option" data-period="daily" role="radio" aria-checked="true">
-            <strong>Daily</strong>
-            <span>Reset every day</span>
-          </button>
-          <button class="card option" data-period="weekly" role="radio" aria-checked="false">
-            <strong>Weekly</strong>
-            <span>Reset every week</span>
-          </button>
-          <button class="card option" data-period="monthly" role="radio" aria-checked="false">
-            <strong>Monthly</strong>
-            <span>Reset every month</span>
-          </button>
+        <div class="onboarding-visual">
+          <div class="mini-ring">
+            <span>₪</span>
+          </div>
+          <div>
+            <p class="visual-title">כמה נשאר לי?</p>
+            <p class="subtitle">נסכם לכם בכל יום כמה נשאר מהתקציב.</p>
+          </div>
         </div>
-        <button class="primary" data-action="to-budget">Continue →</button>
-      </section>
-
-      <section class="view" data-view="budget" hidden>
-        <div class="step-indicator">
-          <span class="dot"></span>
-          <span class="dot active"></span>
-        </div>
-        <h2>Set your budget</h2>
-        <p class="subtitle">How much can you spend per day?</p>
-        <div class="amount-card">
-          <span class="currency">₪</span>
-          <span id="budget-amount">0</span>
-        </div>
-        <div class="quick-picks">
-          <button class="chip" data-budget="100">₪100</button>
-          <button class="chip" data-budget="200">₪200</button>
-          <button class="chip" data-budget="500">₪500</button>
-        </div>
-        <div class="footer-actions">
-          <button class="ghost" data-action="back-to-period">Back</button>
-          <button class="primary" data-action="start">Get Started →</button>
-        </div>
+        <button class="primary" data-action="save-onboarding">שמירה והמשך</button>
       </section>
 
       <section class="view" data-view="home" hidden>

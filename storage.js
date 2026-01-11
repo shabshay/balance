@@ -9,7 +9,7 @@ const defaultCategories = [
 ];
 
 const defaultSettings = {
-  period: "daily",
+  period: "weekly",
   budget: 0,
   currency: "₪",
   locale: "he-IL",
