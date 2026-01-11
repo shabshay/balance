@@ -1,4 +1,4 @@
-export type Period = "daily" | "weekly" | "monthly";
+export type Period = "weekly" | "monthly";
 
 export interface Expense {
   id: string;

@@ -137,6 +137,76 @@ body {
   background: #c7cdd7;
 }
 
+.input-with-prefix {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.input-with-prefix span {
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.input-with-prefix input {
+  border: none;
+  outline: none;
+  font-size: 18px;
+  flex: 1;
+  background: transparent;
+}
+
+.pill-group {
+  display: flex;
+  gap: 12px;
+}
+
+.pill {
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 10px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.pill[aria-checked="true"] {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.onboarding-visual {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: #fff8e8;
+  border-radius: 18px;
+  padding: 16px;
+  border: 1px solid #f3e1ba;
+}
+
+.mini-ring {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: conic-gradient(var(--accent) 240deg, #fff 0deg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.visual-title {
+  margin: 0;
+  font-weight: 700;
+}
+
 .ghost {
   background: var(--primary-ghost);
   color: var(--text);

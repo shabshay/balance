@@ -4,7 +4,7 @@ const views = Array.from(document.querySelectorAll(".view"));
 const storage = createStorage();
 const api = createMockApi(storage);
 const state = {
-  period: "daily",
+  period: "weekly",
   budget: 0,
   expenses: [],
   categories: [],
@@ -17,7 +17,7 @@ const state = {
   },
 };
 
-const budgetAmount = document.getElementById("budget-amount");
+const onboardingBudget = document.getElementById("onboarding-budget");
 const balanceLeft = document.getElementById("balance-left");
 const resetLabel = document.getElementById("reset-label");
 const balanceRing = document.getElementById("balance-ring");
@@ -47,7 +47,9 @@ const updatePeriodSelection = (period) => {
 };
 
 const updateBudgetDisplay = () => {
-  budgetAmount.textContent = formatMoney(state.budget);
+  if (onboardingBudget) {
+    onboardingBudget.value = state.budget ? String(state.budget) : "";
+  }
 };
 
 const updateBalance = () => {
@@ -158,9 +160,7 @@ const updateFromStorage = async () => {
   updateBalance();
   renderExpenses();
   renderCategoryChips();
-  if (state.budget > 0) {
-    showView("home");
-  }
+  showView(state.budget > 0 ? "home" : "onboarding");
 };
 
 const handleKeypad = (key) => {
@@ -192,6 +192,18 @@ const setBudget = async (budget) => {
   updateBalance();
 };
 
+const saveOnboarding = async () => {
+  const budgetValue = Number(onboardingBudget.value || 0);
+  if (!budgetValue) {
+    return;
+  }
+  state.budget = budgetValue;
+  state.settings = await api.updateSettings({ budget: budgetValue, period: state.period });
+  updateBudgetDisplay();
+  updateBalance();
+  showView("home");
+};
+
 const registerEvents = () => {
   document.querySelectorAll("[data-period]").forEach((button) => {
     button.addEventListener("click", () => {
@@ -199,26 +211,8 @@ const registerEvents = () => {
     });
   });
 
-  document.querySelector("[data-action='to-budget']").addEventListener("click", () => {
-    showView("budget");
-  });
-
-  document.querySelector("[data-action='back-to-period']").addEventListener("click", () => {
-    showView("period");
-  });
-
-  document.querySelectorAll("[data-budget]").forEach((button) => {
-    button.addEventListener("click", () => {
-      void setBudget(Number(button.dataset.budget));
-    });
-  });
-
-  document.querySelector("[data-action='start']").addEventListener("click", () => {
-    if (!state.budget) {
-      return;
-    }
-    updateBalance();
-    showView("home");
+  document.querySelector("[data-action='save-onboarding']").addEventListener("click", () => {
+    void saveOnboarding();
   });
 
   document.querySelector("[data-action='add-expense']").addEventListener("click", () => {
