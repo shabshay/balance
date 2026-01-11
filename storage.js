@@ -13,6 +13,7 @@ const defaultSettings = {
   budget: 0,
   currency: "₪",
   locale: "he-IL",
+  alertsEnabled: false,
 };
 
 const buildSeedState = (stored = {}) => {
@@ -63,6 +64,11 @@ export const createStorage = (key = STORAGE_KEY) => {
     const state = buildSeedState(nextState);
     persistState(key, state);
     return state;
+  };
+
+  const clear = () => {
+    localStorage.removeItem(key);
+    return buildSeedState();
   };
 
   const getExpenses = () => load().expenses;
@@ -152,6 +158,7 @@ export const createStorage = (key = STORAGE_KEY) => {
   return {
     load,
     save,
+    clear,
     getExpenses,
     addExpense,
     updateExpense,
@@ -183,6 +190,7 @@ export const createMockApi = (
   return {
     load: () => withLatency(storage.load),
     save: (state) => withLatency(() => storage.save(state)),
+    clear: () => withLatency(() => storage.clear()),
     getExpenses: () => withLatency(storage.getExpenses),
     addExpense: (expense) => withLatency(() => storage.addExpense(expense)),
     updateExpense: (id, updates) => withLatency(() => storage.updateExpense(id, updates)),

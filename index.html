@@ -13,7 +13,7 @@
           <h1>Balance</h1>
           <p>Spend like it’s cash.</p>
         </div>
-        <button class="icon-button" type="button" aria-label="Settings">
+        <button class="icon-button" type="button" aria-label="Settings" data-action="open-settings">
           ⚙️
         </button>
       </header>
@@ -91,6 +91,63 @@
             <p>No expenses yet</p>
             <span>Tap "Add expense" to get started</span>
           </div>
+        </section>
+      </section>
+
+      <section class="view" data-view="settings" hidden>
+        <header class="subheader">
+          <button class="icon-button" data-action="back-home">←</button>
+          <div>
+            <h2 class="view-title">הגדרות</h2>
+            <p class="subtitle">עדכנו תקציב, תקופה והתראות.</p>
+          </div>
+        </header>
+        <section class="summary-card">
+          <label class="field">
+            <span>סכום תקציב</span>
+            <div class="input-with-prefix">
+              <span>₪</span>
+              <input
+                id="settings-budget"
+                type="number"
+                inputmode="decimal"
+                min="0"
+                placeholder="0"
+              />
+            </div>
+          </label>
+          <div class="field">
+            <span>תקופה</span>
+            <div class="pill-group" role="radiogroup">
+              <button class="pill" data-period="weekly" role="radio" aria-checked="true">שבועי</button>
+              <button class="pill" data-period="monthly" role="radio" aria-checked="false">חודשי</button>
+            </div>
+          </div>
+          <button class="primary" data-action="save-settings">שמירת שינויים</button>
+        </section>
+        <section class="summary-card">
+          <div class="toggle-row">
+            <div>
+              <p class="summary-label">התראות יומיות</p>
+              <p class="subtitle">נזכיר לכם כמה נשאר בתקופה.</p>
+            </div>
+            <label class="toggle" aria-label="הפעלת התראות">
+              <input type="checkbox" id="alerts-toggle" disabled />
+              <span class="toggle-slider" aria-hidden="true"></span>
+            </label>
+          </div>
+          <p class="subtitle">בקרוב - אפשרות זו תתווסף בעדכון הבא.</p>
+        </section>
+        <section class="summary-card">
+          <h3>פרטיות</h3>
+          <p class="subtitle privacy-note">
+            Balance פועל local-first: הנתונים נשמרים רק בדפדפן שלך ולא נשלחים לשום שרת.
+          </p>
+        </section>
+        <section class="summary-card">
+          <p class="summary-label">איפוס נתונים</p>
+          <p class="subtitle">מוחק את כל הנתונים שנשמרו במכשיר הזה.</p>
+          <button class="ghost danger" data-action="reset-data">איפוס נתונים</button>
         </section>
       </section>
 
