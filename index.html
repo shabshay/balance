@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Balance</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="app" id="app">
+      <header class="brand">
+        <div>
+          <h1>Balance</h1>
+          <p>Spend like it’s cash.</p>
+        </div>
+        <button class="icon-button" type="button" aria-label="Settings">
+          ⚙️
+        </button>
+      </header>
+
+      <section class="view" data-view="period">
+        <div class="step-indicator">
+          <span class="dot active"></span>
+          <span class="dot"></span>
+        </div>
+        <h2>Choose your period</h2>
+        <p class="subtitle">How often should your budget reset?</p>
+        <div class="card-list" role="radiogroup">
+          <button class="card option" data-period="daily" role="radio" aria-checked="true">
+            <strong>Daily</strong>
+            <span>Reset every day</span>
+          </button>
+          <button class="card option" data-period="weekly" role="radio" aria-checked="false">
+            <strong>Weekly</strong>
+            <span>Reset every week</span>
+          </button>
+          <button class="card option" data-period="monthly" role="radio" aria-checked="false">
+            <strong>Monthly</strong>
+            <span>Reset every month</span>
+          </button>
+        </div>
+        <button class="primary" data-action="to-budget">Continue →</button>
+      </section>
+
+      <section class="view" data-view="budget" hidden>
+        <div class="step-indicator">
+          <span class="dot"></span>
+          <span class="dot active"></span>
+        </div>
+        <h2>Set your budget</h2>
+        <p class="subtitle">How much can you spend per day?</p>
+        <div class="amount-card">
+          <span class="currency">₪</span>
+          <span id="budget-amount">0</span>
+        </div>
+        <div class="quick-picks">
+          <button class="chip" data-budget="100">₪100</button>
+          <button class="chip" data-budget="200">₪200</button>
+          <button class="chip" data-budget="500">₪500</button>
+        </div>
+        <div class="footer-actions">
+          <button class="ghost" data-action="back-to-period">Back</button>
+          <button class="primary" data-action="start">Get Started →</button>
+        </div>
+      </section>
+
+      <section class="view" data-view="home" hidden>
+        <div class="balance-ring" id="balance-ring">
+          <div>
+            <p class="balance-amount">₪<span id="balance-left">0</span></p>
+            <p class="balance-label">left today</p>
+          </div>
+        </div>
+        <p class="reset-label" id="reset-label">Resets in 0h 00m</p>
+        <button class="primary" data-action="add-expense">＋ Add expense</button>
+        <div class="split-actions">
+          <button class="ghost">All Expenses</button>
+          <button class="ghost">Reports</button>
+        </div>
+        <section>
+          <h3>Recent expenses</h3>
+          <div id="recent-expenses" class="expense-list empty">
+            <p>No expenses yet</p>
+            <span>Tap "Add expense" to get started</span>
+          </div>
+        </section>
+      </section>
+
+      <section class="view" data-view="amount" hidden>
+        <header class="subheader">
+          <button class="icon-button" data-action="cancel-expense">←</button>
+          <div class="step-indicator small">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+          </div>
+        </header>
+        <p class="subtitle">How much did you spend?</p>
+        <div class="amount-display">₪<span id="expense-amount">0</span></div>
+        <div class="keypad" aria-label="Numeric keypad">
+          <button data-key="1">1</button>
+          <button data-key="2">2</button>
+          <button data-key="3">3</button>
+          <button data-key="4">4</button>
+          <button data-key="5">5</button>
+          <button data-key="6">6</button>
+          <button data-key="7">7</button>
+          <button data-key="8">8</button>
+          <button data-key="9">9</button>
+          <button data-key=".">.</button>
+          <button data-key="0">0</button>
+          <button data-key="back">⌫</button>
+        </div>
+        <button class="primary" data-action="to-details">Continue</button>
+      </section>
+
+      <section class="view" data-view="details" hidden>
+        <header class="subheader">
+          <button class="icon-button" data-action="back-to-amount">←</button>
+          <div class="step-indicator small">
+            <span class="dot active"></span>
+            <span class="dot active"></span>
+            <span class="dot"></span>
+          </div>
+        </header>
+        <p class="subtitle">What did you spend on?</p>
+        <div class="amount-display">₪<span id="expense-amount-review">0</span></div>
+        <label class="field">
+          <span>Title (optional)</span>
+          <input type="text" id="expense-title" placeholder="Coffee, Supermarket, Taxi..." />
+        </label>
+        <label class="field">
+          <span>Description (optional)</span>
+          <textarea id="expense-description" placeholder="Add more details..."></textarea>
+        </label>
+        <button class="primary" data-action="to-category">Continue</button>
+      </section>
+
+      <section class="view" data-view="category" hidden>
+        <header class="subheader">
+          <button class="icon-button" data-action="back-to-details">←</button>
+          <div class="step-indicator small">
+            <span class="dot active"></span>
+            <span class="dot active"></span>
+            <span class="dot active"></span>
+          </div>
+        </header>
+        <p class="subtitle">Pick a category</p>
+        <div class="amount-display">₪<span id="expense-amount-final">0</span></div>
+        <div class="category-chips" id="category-chips"></div>
+        <div class="footer-actions">
+          <button class="ghost" data-action="back-to-details">Back</button>
+          <button class="primary" data-action="save-expense">✓ Save expense</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
