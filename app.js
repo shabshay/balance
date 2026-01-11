@@ -21,6 +21,12 @@ const onboardingBudget = document.getElementById("onboarding-budget");
 const balanceLeft = document.getElementById("balance-left");
 const resetLabel = document.getElementById("reset-label");
 const balanceRing = document.getElementById("balance-ring");
+const currentBalance = document.getElementById("current-balance");
+const budgetTotal = document.getElementById("budget-total");
+const budgetSpent = document.getElementById("budget-spent");
+const budgetProgress = document.getElementById("budget-progress");
+const progressLabel = document.getElementById("progress-label");
+const progressRemaining = document.getElementById("progress-remaining");
 const recentExpenses = document.getElementById("recent-expenses");
 const expenseAmount = document.getElementById("expense-amount");
 const expenseAmountReview = document.getElementById("expense-amount-review");
@@ -57,10 +63,28 @@ const updateBalance = () => {
     { period: state.period, budget: state.budget },
     state.expenses,
   );
+  const totalSpent = state.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const balance = state.budget - totalSpent;
+  const utilization = state.budget > 0 ? Math.min(totalSpent / state.budget, 1) : 0;
   balanceLeft.textContent = formatMoney(left);
   const degrees = Math.round(percent * 360);
   balanceRing.style.background = `conic-gradient(var(--accent) ${degrees}deg, #e9eef5 ${degrees}deg)`;
   resetLabel.textContent = state.period === "weekly" ? "Resets in 3d 4h" : state.period === "monthly" ? "Resets in 12d 2h" : "Resets in 8h 46m";
+  currentBalance.textContent = formatMoney(balance);
+  budgetTotal.textContent = formatMoney(state.budget);
+  budgetSpent.textContent = formatMoney(totalSpent);
+  progressLabel.textContent = `${Math.round(utilization * 100)}% used`;
+  progressRemaining.textContent = `${formatMoney(Math.max(state.budget - totalSpent, 0))} left`;
+  budgetProgress.style.width = `${Math.round(utilization * 100)}%`;
+  budgetProgress.classList.remove("low", "medium", "high");
+  if (utilization < 0.6) {
+    budgetProgress.classList.add("low");
+  } else if (utilization < 0.85) {
+    budgetProgress.classList.add("medium");
+  } else {
+    budgetProgress.classList.add("high");
+  }
+  budgetProgress.parentElement?.setAttribute("aria-valuenow", String(Math.round(utilization * 100)));
 };
 
 const renderExpenses = () => {
@@ -72,7 +96,7 @@ const renderExpenses = () => {
 
   recentExpenses.classList.remove("empty");
   recentExpenses.innerHTML = "";
-  state.expenses.slice(-3).reverse().forEach((expense) => {
+  state.expenses.slice(-5).reverse().forEach((expense) => {
     const category = state.categories.find((item) => item.id === expense.categoryId);
     const item = document.createElement("div");
     item.className = "expense-item";
