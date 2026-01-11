@@ -34,6 +34,8 @@ const budgetSpent = document.getElementById("budget-spent");
 const budgetProgress = document.getElementById("budget-progress");
 const progressLabel = document.getElementById("progress-label");
 const progressRemaining = document.getElementById("progress-remaining");
+const settingsBudgetInput = document.getElementById("settings-budget");
+const alertsToggle = document.getElementById("alerts-toggle");
 const recentExpenses = document.getElementById("recent-expenses");
 const expenseForm = document.getElementById("expense-form");
 const expenseAmountInput = document.getElementById("expense-amount-input");
@@ -112,6 +114,12 @@ const updatePeriodSelection = (period) => {
 const updateBudgetDisplay = () => {
   if (onboardingBudget) {
     onboardingBudget.value = state.budget ? String(state.budget) : "";
+  }
+  if (settingsBudgetInput) {
+    settingsBudgetInput.value = state.budget ? String(state.budget) : "";
+  }
+  if (alertsToggle) {
+    alertsToggle.checked = false;
   }
 };
 
@@ -520,6 +528,23 @@ const saveOnboarding = async () => {
   showView("home");
 };
 
+const saveSettings = async () => {
+  const budgetValue = Number(settingsBudgetInput?.value || 0);
+  if (budgetValue > 0) {
+    await setBudget(budgetValue);
+  }
+  showView("home");
+};
+
+const resetData = async () => {
+  const confirmed = window.confirm("לאפס את כל הנתונים? לא ניתן לשחזר לאחר מכן.");
+  if (!confirmed) {
+    return;
+  }
+  await api.clear();
+  await updateFromStorage();
+};
+
 const handleExpenseSubmit = async (event) => {
   event.preventDefault();
   const amountValue = expenseAmountInput.value;
@@ -636,6 +661,18 @@ const registerEvents = () => {
     button.addEventListener("click", () => {
       showView("home");
     });
+  });
+
+  document.querySelector("[data-action='open-settings']").addEventListener("click", () => {
+    showView("settings");
+  });
+
+  document.querySelector("[data-action='save-settings']").addEventListener("click", () => {
+    void saveSettings();
+  });
+
+  document.querySelector("[data-action='reset-data']").addEventListener("click", () => {
+    void resetData();
   });
 
   expenseCategorySelect.addEventListener("change", () => {

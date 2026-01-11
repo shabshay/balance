@@ -22,6 +22,7 @@ export interface Settings {
   budget: number;
   currency: string;
   locale: string;
+  alertsEnabled: boolean;
 }
 
 export interface ImportedStatement {
@@ -42,6 +43,7 @@ export interface StorageState {
 export interface StorageApi {
   load: () => StorageState;
   save: (state: StorageState) => StorageState;
+  clear: () => StorageState;
   getExpenses: () => Expense[];
   addExpense: (expense: Expense) => Expense[];
   updateExpense: (id: string, updates: Partial<Expense>) => Expense[];
@@ -61,6 +63,7 @@ export interface StorageApi {
 export interface MockApi {
   load: () => Promise<StorageState>;
   save: (state: StorageState) => Promise<StorageState>;
+  clear: () => Promise<StorageState>;
   getExpenses: () => Promise<Expense[]>;
   addExpense: (expense: Expense) => Promise<Expense[]>;
   updateExpense: (id: string, updates: Partial<Expense>) => Promise<Expense[]>;
